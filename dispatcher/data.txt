@@ -1,0 +1,40 @@
+JOB Status: 
+	Paused
+	Queued
+	Pending (Waiting for another job to complete)
+	Running
+	Success
+	Error
+	Cancelled
+
+batch:
+	id
+	created
+	updated
+
+batch_tasks:
+	id
+	batch_id
+	client_id
+	requires_batch_task_id
+	task_id
+	arguments
+	
+jobs:
+	id
+	created
+	started
+	finished
+	batch_id
+	batch_task_id
+	status
+	message
+
+clients:
+	id
+	client
+
+task_types:
+	id
+	task
+	description
