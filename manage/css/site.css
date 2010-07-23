@@ -1,0 +1,14 @@
+#nav {
+	width: 200px;
+	border: 1px solid #505050;
+	background: #EFEFEF;
+	padding: 1em;
+	float: left;
+}
+#content {
+	border: 1px solid #505050;
+	padding: 1em;
+}
+#content > div {
+	display: none;
+}
