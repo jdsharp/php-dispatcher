@@ -7,7 +7,7 @@ function task_svn_export($args) {
 	
 	$fp = popen($svn, 'r');
 	if ( $fp ) {
-		echo 
+		echo '';
 	}
 	fclose($fp);
 	return true;

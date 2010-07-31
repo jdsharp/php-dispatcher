@@ -1,15 +1,15 @@
 <?php
-set_time_limit(0);
 
 if ( !isset($agent) ) {
 	$agent = trim(`hostname`);
 	// For debugging
-	$agent = 'test-a';
+	// $agent = 'test-a';
 }
 $secret	= 'some-secret-key-that-is-long';
 $salt	= date('i');
 
-define('DISPATCHER_URL', 'http://localhost/~jdsharp/site-deploy/dispatcher/');
+// Set this to the URL which has the dispatcher Running
+define('DISPATCHER_URL', 'http://localhost/~jdsharp/php-dispatcher/dispatcher/agent-api.php');
 
 define('REQUEST_HASH', 	md5( $secret . $salt ) );
 define('AGENT_ID',		$agent );
@@ -17,6 +17,8 @@ define('PROCESS_ID',	getmypid() );
 
 define('LOCK_FILE', '/tmp/.run-agent-' . AGENT_ID . '.pid');
 
+// -- No need to modify anything below here --
+set_time_limit(0);
 if ( file_exists(LOCK_FILE) ) {
 	echo "INFO: Exit, another process (" . file_get_contents(LOCK_FILE) . ") is running\n";
 	exit;
@@ -80,12 +82,14 @@ function httpPost($url, $data) {
 	));
 	$ret = curl_exec($ch);
 	curl_close($ch);
+	echo "RESPONSE: $ret\n";
 	return $ret;
 }
 
 function updateStatus($taskId, $status, $runtime = -1, $message = '') {
 	echo "$taskId ran in $runtime\n";
-	$json = httpPost(DISPATCHER_URL . 'status.php', array(
+	$json = httpPost(DISPATCHER_URL, array(
+		'action' 	=> 'status',
 		'for' 		=> AGENT_ID,
 		'hash'		=> REQUEST_HASH,
 		'job_task_id' => $taskId,
@@ -97,7 +101,8 @@ function updateStatus($taskId, $status, $runtime = -1, $message = '') {
 	return json_decode($json);
 }
 function requestTasks($client) {
-	$json = httpPost(DISPATCHER_URL . 'jobs.php', array(
+	$json = httpPost(DISPATCHER_URL, array(
+		'action' => 'tasks',
 		'for' 	=> $client,
 		'hash'	=> REQUEST_HASH
 	));
@@ -107,6 +112,7 @@ function requestTask() {
 	$payload = requestTasks(AGENT_ID);
 	if ( $payload && $payload->status == 'success' ) {
 		if ( is_array( $payload->tasks ) ) {
+			// Only return the first task
 			return array_shift($payload->tasks);
 		}
 	}
@@ -117,7 +123,8 @@ function loadTaskDefinition($task) {
 	$task = str_replace('-', '_', $task);
 	$fn = 'task_' . $task;
 	if ( !function_exists($fn) ) {
-		$taskSource = httpPost(DISPATCHER_URL . 'task.php', array(
+		$taskSource = httpPost(DISPATCHER_URL, array(
+			'action' => 'tasksource',
 			'task' => $task
 		));
 		
